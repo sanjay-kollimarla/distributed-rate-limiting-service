@@ -1,0 +1,23 @@
+# Render Blueprint: a free web service built from the Dockerfile plus a free Redis-compatible
+# Key Value store on Render's private network (no external account, no TLS, same region).
+services:
+  - type: web
+    name: rate-limiter-demo
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: rate-limiter-redis
+          property: connectionString
+
+  - type: keyvalue
+    name: rate-limiter-redis
+    plan: free
+    ipAllowList: [] # internal connections only

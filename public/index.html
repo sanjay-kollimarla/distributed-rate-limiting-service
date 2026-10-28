@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rate Limiter Live Demo</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <h1>Distributed Rate Limiter</h1>
+        <p class="sub">
+          A live Redis-backed limiter. Send real requests, watch it say no, then push it with simulated load.
+        </p>
+      </div>
+      <div class="chips">
+        <span id="chip-store" class="chip" role="status">store: checking…</span>
+        <a class="chip link" href="https://github.com/sanjay-kollimarla/distributed-rate-limiting-service">Source</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="explain" aria-label="How it works">
+        <article>
+          <h2>Token bucket</h2>
+          <p>
+            Each client has a bucket that refills at a steady rate. A request spends one token. Bursts are allowed up
+            to the bucket size, then traffic is paced to the refill rate.
+          </p>
+        </article>
+        <article>
+          <h2>Sliding window</h2>
+          <p>
+            Counts requests in the last N seconds, with no reset boundary to game. Used here for
+            <code>POST /api/orders</code>: 10 per minute.
+          </p>
+        </article>
+        <article>
+          <h2>Shared and atomic</h2>
+          <p>
+            State lives in Redis and each check is one Lua script, so any number of app instances share one limit with
+            no race conditions.
+          </p>
+        </article>
+      </section>
+
+      <section class="panel" aria-labelledby="try-title">
+        <h2 id="try-title">1. Try it: one client, real requests</h2>
+        <div class="controls">
+          <label>
+            Client tier
+            <select id="try-tier">
+              <option value="anonymous">Anonymous</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <label>
+            Endpoint
+            <select id="try-endpoint">
+              <option value="resource">GET /api/resource (token bucket, by tier)</option>
+              <option value="orders">POST /api/orders (sliding window, 10/min)</option>
+            </select>
+          </label>
+          <div class="buttons">
+            <button id="try-send" class="primary" type="button">Send request</button>
+            <button id="try-burst" type="button">Burst ×30</button>
+            <button id="try-reset" type="button">New client identity</button>
+          </div>
+        </div>
+
+        <div class="gauge" aria-live="polite">
+          <div class="gauge-numbers">
+            <span id="gauge-remaining" class="big">–</span>
+            <span class="muted">requests left of <span id="gauge-limit">–</span></span>
+          </div>
+          <div class="bar"><div id="gauge-bar"></div></div>
+          <p id="gauge-status" class="muted">Send a request to begin.</p>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Result</th>
+                <th>Left</th>
+                <th>Policy</th>
+                <th>Latency</th>
+                <th>Request id</th>
+              </tr>
+            </thead>
+            <tbody id="log"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="load-title">
+        <h2 id="load-title">2. Load test: many clients at once</h2>
+        <p class="muted">
+          Runs in your browser against this server. Each simulated client has its own identity and its own limit,
+          unless you tick “all share one client”. Total load is capped at 500 requests/sec to protect the shared Redis.
+        </p>
+        <div class="presets">
+          <span class="muted">Presets:</span>
+          <button type="button" data-preset="steady">100 well-behaved clients</button>
+          <button type="button" data-preset="abusive">1 abusive client</button>
+          <button type="button" data-preset="crowd">200 clients, 2 req/s each</button>
+        </div>
+        <div class="controls">
+          <label>Clients <input id="load-clients" type="number" min="1" max="500" value="50" /></label>
+          <label>Requests/sec per client <input id="load-rps" type="number" min="1" max="100" value="10" /></label>
+          <label>Duration (s) <input id="load-seconds" type="number" min="3" max="20" value="10" /></label>
+          <label>
+            Tier
+            <select id="load-tier">
+              <option value="anonymous">Anonymous</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <label class="check"><input id="load-shared" type="checkbox" /> All share one client</label>
+          <div class="buttons">
+            <button id="load-start" class="primary" type="button">Start</button>
+            <button id="load-stop" type="button" disabled>Stop</button>
+          </div>
+        </div>
+
+        <p id="load-status" class="muted" aria-live="polite">Idle.</p>
+        <div class="stats">
+          <div><span id="stat-sent" class="big">0</span><span class="muted">requests sent</span></div>
+          <div><span id="stat-rps" class="big">0</span><span class="muted">requests/sec</span></div>
+          <div><span id="stat-allowed" class="big ok">0</span><span class="muted">allowed (200)</span></div>
+          <div><span id="stat-denied" class="big deny">0</span><span class="muted">limited (429)</span></div>
+          <div><span id="stat-p50" class="big">–</span><span class="muted">p50 latency</span></div>
+          <div><span id="stat-p95" class="big">–</span><span class="muted">p95 latency</span></div>
+          <div><span id="stat-p99" class="big">–</span><span class="muted">p99 latency</span></div>
+          <div><span id="stat-errors" class="big">0</span><span class="muted">errors</span></div>
+        </div>
+
+        <figure class="chart">
+          <canvas id="chart" role="img" aria-label="Allowed and limited requests per second"></canvas>
+          <figcaption class="legend">
+            <span><i class="swatch ok-bg"></i>allowed</span>
+            <span><i class="swatch deny-bg"></i>limited (429)</span>
+            <span><i class="swatch err-bg"></i>errors</span>
+            <span class="muted">requests per second, one bar per second</span>
+          </figcaption>
+        </figure>
+        <p class="muted small">
+          Browsers cap parallel connections, so this tops out well below the server. For a heavier benchmark run
+          <code>bun run load-test</code> (13k+ requests/sec locally).
+        </p>
+      </section>
+
+      <section class="panel" aria-labelledby="server-title">
+        <h2 id="server-title">3. What the server counted</h2>
+        <p class="muted">Read from <code>GET /metrics</code> (Prometheus format), refreshed every 2 seconds.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Policy</th>
+                <th>Allowed</th>
+                <th>Denied</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-body">
+              <tr><td colspan="3" class="muted">Waiting for data…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted small">Store failures (limiter failed open): <strong id="metrics-failures">–</strong></p>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "name": "distributed-rate-limiting-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/main.ts",
+    "start": "bun src/main.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "load-test": "bun scripts/load-test.ts"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "pino": "^10.4.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.3",
+    "@types/bun": "^1.4.4",
+    "@types/express": "^5.0.6",
+    "pino-pretty": "^13.2.0",
+    "typescript": "^7.0.2"
+  }
+}
