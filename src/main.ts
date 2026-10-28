@@ -82,8 +82,12 @@ if (config.demoMode) {
 }
 
 // Starting degraded beats crash-looping: the limiter fails open and reconnects on its own.
-if (!(await store.readiness.isStoreReachable())) {
-  logger.warn("rate limit store unreachable at startup, running degraded (failing open)", { store: config.store });
+const startup = await store.readiness.check();
+if (!startup.reachable) {
+  logger.warn("rate limit store unreachable at startup, running degraded (failing open)", {
+    store: config.store,
+    error: startup.error,
+  });
 }
 
 const server = app.listen(config.port, () => {

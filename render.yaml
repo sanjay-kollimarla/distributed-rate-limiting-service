@@ -11,6 +11,8 @@ services:
         value: "true"
       - key: TRUST_PROXY
         value: "1"
+      - key: REDIS_CALL_TIMEOUT_MS
+        value: "1000" # first connection over the private network can be slower than a local one
       - key: REDIS_URL
         fromService:
           type: keyvalue

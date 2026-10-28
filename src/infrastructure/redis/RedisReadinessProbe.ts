@@ -1,19 +1,19 @@
 import type { RedisClient } from "bun";
-import type { ReadinessProbe } from "../../application/ReadinessProbe";
+import type { ReadinessProbe, StoreStatus } from "../../application/ReadinessProbe";
 import { withTimeout } from "../../shared/timeout";
 
 export class RedisReadinessProbe implements ReadinessProbe {
   constructor(
     private readonly client: RedisClient,
-    private readonly timeoutMs = 500,
+    private readonly timeoutMs = 2000,
   ) {}
 
-  async isStoreReachable(): Promise<boolean> {
+  async check(): Promise<StoreStatus> {
     try {
       await withTimeout(this.client.send("PING", []), this.timeoutMs);
-      return true;
-    } catch {
-      return false;
+      return { reachable: true };
+    } catch (error) {
+      return { reachable: false, error: error instanceof Error ? error.message : String(error) };
     }
   }
 }

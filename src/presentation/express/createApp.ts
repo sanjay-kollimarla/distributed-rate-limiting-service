@@ -56,11 +56,12 @@ export function createApp(deps: AppDependencies): Express {
   // Liveness vs readiness: the limiter fails open, so a store outage degrades the
   // service but must not make the orchestrator pull healthy instances out of rotation.
   app.get("/ready", async (_req, res) => {
-    const storeUp = await deps.readiness.isStoreReachable();
+    const store = await deps.readiness.check();
     res.json({
-      status: storeUp ? "ready" : "degraded",
+      status: store.reachable ? "ready" : "degraded",
       storeKind: deps.storeKind,
-      dependencies: { store: storeUp ? "up" : "down" },
+      dependencies: { store: store.reachable ? "up" : "down" },
+      ...(store.error ? { error: store.error } : {}),
     });
   });
 

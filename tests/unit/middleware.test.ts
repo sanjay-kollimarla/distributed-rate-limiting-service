@@ -23,7 +23,9 @@ import { ManualClock } from "../support/ManualClock";
 let server: Server;
 let baseUrl: string;
 let storeUp = true;
-const readiness: ReadinessProbe = { isStoreReachable: async () => storeUp };
+const readiness: ReadinessProbe = {
+  check: async () => ({ reachable: storeUp, ...(storeUp ? {} : { error: "boom" }) }),
+};
 
 beforeAll(async () => {
   const bus = new RateLimitEventBus();
@@ -120,7 +122,12 @@ describe("operational endpoints", () => {
     const res = await get("/ready");
     storeUp = true;
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ status: "degraded", storeKind: "memory", dependencies: { store: "down" } });
+    expect(await res.json()).toEqual({
+      status: "degraded",
+      storeKind: "memory",
+      dependencies: { store: "down" },
+      error: "boom",
+    });
   });
 
   it("protects /metrics with the bearer token and serves Prometheus text", async () => {
