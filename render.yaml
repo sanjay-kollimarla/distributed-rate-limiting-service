@@ -2,7 +2,7 @@
 # Key Value store on Render's private network (no external account, no TLS, same region).
 services:
   - type: web
-    name: rate-limiter-demo
+    name: sanjay-kollimarla-distributed-rate-limiter-service
     runtime: docker
     plan: free
     healthCheckPath: /health
