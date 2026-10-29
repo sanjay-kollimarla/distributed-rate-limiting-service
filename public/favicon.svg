@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rate limiter">
+  <title>Rate limiter</title>
+  <rect width="64" height="64" rx="14" fill="#0f766e"/>
+  <rect x="12" y="34" width="9" height="18" rx="2" fill="#ffffff"/>
+  <rect x="25" y="26" width="9" height="26" rx="2" fill="#ffffff"/>
+  <rect x="38" y="18" width="9" height="34" rx="2" fill="#ffffff"/>
+  <path d="M10 14h44" stroke="#fb923c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M51 7l7 7-7 7" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" transform="translate(-6 0)"/>
+</svg>

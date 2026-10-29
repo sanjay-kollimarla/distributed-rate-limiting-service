@@ -111,6 +111,26 @@ main {
   max-width: 56ch;
 }
 
+.byline {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.byline a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.byline a:hover {
+  text-decoration: underline;
+}
+
+.chip.link:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
 .chips {
   display: flex;
   gap: 8px;

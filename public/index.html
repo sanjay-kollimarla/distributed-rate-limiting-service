@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Rate Limiter Live Demo</title>
+    <meta name="description" content="Live demo of a distributed Redis rate limiter (token bucket and sliding window), built by Sanjay Kollimarla." />
+    <meta name="author" content="Sanjay Kollimarla" />
+    <meta name="theme-color" content="#0f766e" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -13,9 +17,16 @@
         <p class="sub">
           A live Redis-backed limiter. Send real requests, watch it say no, then push it with simulated load.
         </p>
+        <p class="byline">
+          Designed and built by
+          <a href="https://sanjay-kollimarla.vercel.app/"><strong>Sanjay Kollimarla</strong></a>
+        </p>
       </div>
       <div class="chips">
         <span id="chip-store" class="chip" role="status">store: checking…</span>
+        <a class="chip link" href="https://sanjay-kollimarla.vercel.app/">Portfolio</a>
+        <a class="chip link" href="https://linkedin.com/in/kollimarla-sai-sanjay">LinkedIn</a>
+        <a class="chip link" href="https://github.com/sanjay-kollimarla">GitHub</a>
         <a class="chip link" href="https://github.com/sanjay-kollimarla/distributed-rate-limiting-service">Source</a>
       </div>
     </header>
